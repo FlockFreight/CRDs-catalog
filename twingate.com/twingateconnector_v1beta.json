@@ -1,0 +1,132 @@
+{
+  "description": "TwingateConnector represents a Connector in Twingate.",
+  "properties": {
+    "spec": {
+      "description": "TwingateConnectorSpec defines the desired state of TwingateConnector",
+      "properties": {
+        "containerExtra": {
+          "type": "object",
+          "x-kubernetes-preserve-unknown-fields": true
+        },
+        "hasStatusNotificationsEnabled": {
+          "default": true,
+          "description": "Enable status notifications for the Connector.",
+          "type": "boolean"
+        },
+        "id": {
+          "nullable": true,
+          "type": "string"
+        },
+        "image": {
+          "description": "Image defines the image to use for the Connector.",
+          "properties": {
+            "repository": {
+              "default": "twingate/connector",
+              "description": "Repository to use for the Connector.",
+              "type": "string"
+            },
+            "tag": {
+              "default": "1",
+              "description": "Tag to use for the Connector.",
+              "type": "string"
+            }
+          },
+          "type": "object",
+          "additionalProperties": false
+        },
+        "imagePolicy": {
+          "description": "ImagePolicy defines the image to use for the Connector and a schedule to keep it up to date.",
+          "properties": {
+            "allowPrerelease": {
+              "default": false,
+              "description": "Allow pre-release versions.",
+              "type": "boolean"
+            },
+            "provider": {
+              "description": "Provider to use for checking for new versions.",
+              "enum": [
+                "dockerhub",
+                "google"
+              ],
+              "type": "string"
+            },
+            "repository": {
+              "default": "twingate/connector",
+              "description": "Repository to check for new versions tags.",
+              "type": "string"
+            },
+            "schedule": {
+              "description": "Cron schedule to check for new versions.",
+              "type": "string"
+            },
+            "version": {
+              "description": "Semver version specifier (ex: '^1.0.0'). Uses NPM spec: https://github.com/npm/node-semver#ranges",
+              "type": "string"
+            }
+          },
+          "required": [
+            "provider"
+          ],
+          "type": "object",
+          "x-kubernetes-validations": [
+            {
+              "message": "Google provider requires specifying repository.",
+              "rule": "self.provider != \"google\" || (self.provider == \"google\" && !has(self.repository))"
+            }
+          ],
+          "additionalProperties": false
+        },
+        "logAnalytics": {
+          "default": true,
+          "description": "Enable real-time connection logs.",
+          "type": "boolean"
+        },
+        "logLevel": {
+          "default": 3,
+          "description": "Log level for the Connector (-1 to 7: -1 for no logs, 0 - least verbose, 7 - most verbose, default: 3).",
+          "maximum": 7,
+          "minimum": -1,
+          "type": "integer"
+        },
+        "name": {
+          "description": "Name of the Connector (optional, if not specified Twingate will give a random name)",
+          "maxLength": 30,
+          "type": "string"
+        },
+        "podAnnotations": {
+          "type": "object",
+          "x-kubernetes-preserve-unknown-fields": true
+        },
+        "podExtra": {
+          "type": "object",
+          "x-kubernetes-preserve-unknown-fields": true
+        },
+        "sidecarContainers": {
+          "description": "SidecarContainers allows injecting additional containers to the Connector Pod.",
+          "items": {
+            "type": "object",
+            "x-kubernetes-preserve-unknown-fields": true
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "x-kubernetes-validations": [
+        {
+          "message": "id is immutable once set",
+          "rule": "(!has(oldSelf.id) || self.id == oldSelf.id)"
+        },
+        {
+          "message": "Can define either `image` or `imagePolicy`, not both.",
+          "rule": "(has(self.image) && !has(self.imagePolicy)) || (!has(self.image) && has(self.imagePolicy)) || (!has(self.image) && !has(self.imagePolicy))"
+        }
+      ],
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "x-kubernetes-preserve-unknown-fields": true
+    }
+  },
+  "type": "object"
+}
